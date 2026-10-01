@@ -1,0 +1,19 @@
+====================================
+    Employee1 Details    
+Employee Name  : Vaishnavi Lahane
+Employee ID    : 24070381
+Department     : Manager
+Salary         : 50000
+====================================
+    Employee2 Details    
+Employee Name  : ABC
+Employee ID    : 123456
+Department     : IT
+Salary         : 10000
+====================================
+    Employee3 Details    
+Employee Name  : XYZ
+Employee ID    : 789012
+Department     : HR
+Salary         : 45000
+====================================
