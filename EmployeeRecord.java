@@ -1,48 +1,37 @@
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.util.*;
 
-public class EmployeeRecord{
-    public static void main(String[] args){
-        try{
-            FileWriter writer = new FileWriter("employee.txt");
-            writer.write("====================================\n");
-            writer.write("    Employee1 Details    \n");
-            writer.write("Employee Name  : Vaishnavi Lahane\n");
-            writer.write("Employee ID    : 24070381\n");
-            writer.write("Department     : Manager\n");
-            writer.write("Salary         : 50000\n");
-            writer.write("====================================\n");
+public class EmployeeRecord {
+    public static void main(String[] args) {
+        ArrayList<String> employees = new ArrayList<>();
+        employees.add("Rahul");
+        employees.add("Priya");
+        employees.add("Amit");
+        employees.add("Sneha");
+        employees.add("Rohit");
+        System.out.println("List of Employees: " + employees);
 
-             writer.write("    Employee2 Details    \n");
-            writer.write("Employee Name  : ABC\n");
-            writer.write("Employee ID    : 123456\n");
-            writer.write("Department     : IT\n");
-            writer.write("Salary         : 10000\n");
-             writer.write("====================================\n");
+    
+        TreeSet<Integer> salaries = new TreeSet<>();
+        salaries.add(50000);
+        salaries.add(60000);
+        salaries.add(70000);
+        salaries.add(55000);
+        salaries.add(65000);
+        System.out.println("\nEmployee Salaries: " + salaries);
+        System.out.println("Lowest Salary: " + salaries.first());
+        System.out.println("Highest Salary: " + salaries.last());
 
-            writer.write("    Employee3 Details    \n");
-            writer.write("Employee Name  : XYZ\n");
-            writer.write("Employee ID    : 789012\n");
-            writer.write("Department     : HR\n");
-            writer.write("Salary         : 45000\n");
-            writer.write("====================================\n");
 
-            writer.close();
-            System.out.println("Data written to employee.txt successfully.");
-        } catch (IOException e) {
-            System.out.println("An error occurred while writing to the file.");
-        }
-        try{
-            FileReader reader = new FileReader("employee.txt");
-            int character;
-            System.out.println("Contents of employee.txt:");
-            while ((character = reader.read()) != -1) {
-                System.out.print((char) character);
-            }
-            reader.close();
-        } catch (IOException e) {
-            System.out.println("An error occurred while reading from the file.");
-        }
+        HashMap<Integer, String> employeeIds = new HashMap<>();
+        employeeIds.put(101, "Rahul");
+        employeeIds.put(102, "Priya");
+        employeeIds.put(103, "Amit");
+        employeeIds.put(104, "Sneha");
+        employeeIds.put(105, "Rohit");
+        System.out.println("\nEmployee IDs Map: " + employeeIds);
+        System.out.println("Employee with ID=103: " + employeeIds.get(103));
+        System.out.println("Employee with ID=104: " + employeeIds.get(104));
+        System.out.println("Employee with ID=105: " + employeeIds.get(105));
+        System.out.println("\n");
     }
 }
