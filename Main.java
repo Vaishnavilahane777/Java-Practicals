@@ -1,139 +1,282 @@
-import java.awt.*;
-import javax.swing.*;
+package com.courseapp;
 
-public class Main extends JFrame {
-    private final JTextField nameField;
-    private final JTextField rollField;
-    private final JTextField marksField;
-    private final JTextArea outputArea;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.SessionFactory;
 
-    public Main() {
-        super("Student Registration");
-        setLayout(new BorderLayout(12, 12));
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setResizable(false);
+import java.util.List;
+import java.util.Scanner;
 
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBorder(BorderFactory.createTitledBorder("Student Details"));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+public class Main {
 
-        JLabel nameLabel = new JLabel("Name:");
-        JLabel rollLabel = new JLabel("Roll No:");
-        JLabel marksLabel = new JLabel("Marks:");
+    private static final SessionFactory factory =
+            HibernateUtil.getFactory();
 
-        nameField = new JTextField(20);
-        rollField = new JTextField(20);
-        marksField = new JTextField(20);
-
-        addField(formPanel, gbc, 0, nameLabel, nameField);
-        addField(formPanel, gbc, 1, rollLabel, rollField);
-        addField(formPanel, gbc, 2, marksLabel, marksField);
-
-        JButton submitButton = new JButton("Submit");
-        submitButton.addActionListener(e -> registerStudent());
-
-        JButton clearButton = new JButton("Clear");
-        clearButton.addActionListener(e -> clearForm());
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.add(submitButton);
-        buttonPanel.add(clearButton);
-
-        outputArea = new JTextArea(8, 30);
-        outputArea.setEditable(false);
-        outputArea.setLineWrap(true);
-        outputArea.setWrapStyleWord(true);
-        outputArea.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        JScrollPane scrollPane = new JScrollPane(outputArea);
-        scrollPane.setBorder(BorderFactory.createTitledBorder("Student Result"));
-
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-        mainPanel.add(formPanel, BorderLayout.NORTH);
-        mainPanel.add(buttonPanel, BorderLayout.CENTER);
-        mainPanel.add(scrollPane, BorderLayout.SOUTH);
-
-        add(mainPanel, BorderLayout.CENTER);
-        pack();
-        setLocationRelativeTo(null);
-        setVisible(true);
-    }
-
-    private void addField(JPanel panel, GridBagConstraints gbc, int row, JLabel label, JTextField field) {
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.weightx = 0.3;
-        gbc.anchor = GridBagConstraints.EAST;
-        panel.add(label, gbc);
-
-        gbc.gridx = 1;
-        gbc.weightx = 0.7;
-        gbc.anchor = GridBagConstraints.WEST;
-        panel.add(field, gbc);
-    }
-
-    private void registerStudent() {
-        String name = nameField.getText().trim();
-        String rollNo = rollField.getText().trim();
-        String marksText = marksField.getText().trim();
-
-        if (name.isEmpty() || rollNo.isEmpty() || marksText.isEmpty()) {
-            outputArea.setText("Please fill in all fields.");
-            return;
-        }
-
-        double marks;
-        try {
-            marks = Double.parseDouble(marksText);
-        } catch (NumberFormatException ex) {
-            outputArea.setText("Marks must be a valid number.");
-            return;
-        }
-
-        if (marks < 0 || marks > 100) {
-            outputArea.setText("Marks must be between 0 and 100.");
-            return;
-        }
-
-        String grade = calculateGrade(marks);
-
-        outputArea.setText(
-                "Student Details\n" +
-                "---------------------------\n" +
-                "Name: " + name + "\n" +
-                "Roll No: " + rollNo + "\n" +
-                "Marks: " + marks + "\n" +
-                "Grade: " + grade
-        );
-    }
-
-    private void clearForm() {
-        nameField.setText("");
-        rollField.setText("");
-        marksField.setText("");
-        outputArea.setText("");
-        nameField.requestFocus();
-    }
-
-    private String calculateGrade(double marks) {
-        if (marks >= 90) {
-            return "A+";
-        } else if (marks >= 80) {
-            return "A";
-        } else if (marks >= 70) {
-            return "B";
-        } else if (marks >= 60) {
-            return "C";
-        } else if (marks >= 50) {
-            return "D";
-        } else {
-            return "F";
-        }
-    }
+    private static final Scanner sc = new Scanner(System.in);
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new Main());
+
+        try {
+            boolean running = true;
+
+            while (running) {
+                System.out.println("\n===== COURSE REGISTRATION SYSTEM =====");
+                System.out.println("1. Add Student");
+                System.out.println("2. Add Course");
+                System.out.println("3. Register Student for Course");
+                System.out.println("4. View Registrations");
+                System.out.println("5. Update Course");
+                System.out.println("6. Remove Registration");
+                System.out.println("7. View Students");
+                System.out.println("8. View Courses");
+                System.out.println("9. Exit");
+                System.out.print("Enter choice: ");
+
+                int choice = Integer.parseInt(sc.nextLine().trim());
+
+                switch (choice) {
+                    case 1 -> addStudent();
+                    case 2 -> addCourse();
+                    case 3 -> registerStudent();
+                    case 4 -> viewRegistrations();
+                    case 5 -> updateCourse();
+                    case 6 -> removeRegistration();
+                    case 7 -> viewStudents();
+                    case 8 -> viewCourses();
+                    case 9 -> running = false;
+                    default -> System.out.println("Invalid choice!");
+                }
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Please enter a valid number.");
+        } finally {
+            HibernateUtil.shutdown();
+            sc.close();
+        }
+    }
+
+    private static void addStudent() {
+        System.out.print("Enter student name: ");
+        String name = sc.nextLine();
+
+        System.out.print("Enter student email: ");
+        String email = sc.nextLine();
+
+        Transaction tx = null;
+
+        try (Session session = factory.openSession()) {
+            tx = session.beginTransaction();
+
+            session.persist(new Student(name, email));
+
+            tx.commit();
+            System.out.println("Student added successfully!");
+        } catch (Exception e) {
+            if (tx != null && tx.isActive()) tx.rollback();
+            System.out.println("Could not add student: " + e.getMessage());
+        }
+    }
+
+    private static void addCourse() {
+        System.out.print("Enter course title: ");
+        String title = sc.nextLine();
+
+        System.out.print("Enter duration in weeks: ");
+        int duration = Integer.parseInt(sc.nextLine().trim());
+
+        if (duration <= 0) {
+            System.out.println("Duration must be positive.");
+            return;
+        }
+
+        Transaction tx = null;
+
+        try (Session session = factory.openSession()) {
+            tx = session.beginTransaction();
+
+            session.persist(new Course(title, duration));
+
+            tx.commit();
+            System.out.println("Course added successfully!");
+        } catch (Exception e) {
+            if (tx != null && tx.isActive()) tx.rollback();
+            System.out.println("Could not add course: " + e.getMessage());
+        }
+    }
+
+    private static void registerStudent() {
+        System.out.print("Enter student ID: ");
+        long studentId = Long.parseLong(sc.nextLine().trim());
+
+        System.out.print("Enter course ID: ");
+        long courseId = Long.parseLong(sc.nextLine().trim());
+
+        Transaction tx = null;
+
+        try (Session session = factory.openSession()) {
+            tx = session.beginTransaction();
+
+            Student student = session.get(Student.class, studentId);
+            Course course = session.get(Course.class, courseId);
+
+            if (student == null || course == null) {
+                System.out.println("Student or course ID not found.");
+                tx.rollback();
+                return;
+            }
+
+            Long existing = session.createQuery(
+                    "select count(r) from Registration r " +
+                    "where r.student.id = :sid " +
+                    "and r.course.id = :cid", Long.class)
+                    .setParameter("sid", studentId)
+                    .setParameter("cid", courseId)
+                    .getSingleResult();
+
+            if (existing > 0) {
+                System.out.println("Student is already registered for this course.");
+                tx.rollback();
+                return;
+            }
+
+            session.persist(new Registration(student, course));
+
+            tx.commit();
+            System.out.println("Registration successful!");
+        } catch (Exception e) {
+            if (tx != null && tx.isActive()) tx.rollback();
+            System.out.println("Registration failed: " + e.getMessage());
+        }
+    }
+
+    private static void viewRegistrations() {
+        try (Session session = factory.openSession()) {
+            List<Registration> registrations = session.createQuery(
+                    "from Registration r " +
+                    "join fetch r.student " +
+                    "join fetch r.course order by r.id",
+                    Registration.class).list();
+
+            if (registrations.isEmpty()) {
+                System.out.println("No registrations found.");
+                return;
+            }
+
+            System.out.println("\n--- Registration Details ---");
+
+            for (Registration r : registrations) {
+                System.out.println(
+                        "Registration ID: " + r.getId()
+                        + " | Student: " + r.getStudent().getName()
+                        + " | Course: " + r.getCourse().getTitle()
+                        + " | Date: " + r.getRegistrationDate());
+            }
+        } catch (Exception e) {
+            System.out.println("Could not retrieve registrations: " + e.getMessage());
+        }
+    }
+
+    private static void updateCourse() {
+        System.out.print("Enter course ID to update: ");
+        long id = Long.parseLong(sc.nextLine().trim());
+
+        Transaction tx = null;
+
+        try (Session session = factory.openSession()) {
+            tx = session.beginTransaction();
+
+            Course course = session.get(Course.class, id);
+
+            if (course == null) {
+                System.out.println("Course not found.");
+                tx.rollback();
+                return;
+            }
+
+            System.out.print("Enter new course title: ");
+            String title = sc.nextLine();
+
+            System.out.print("Enter new duration in weeks: ");
+            int duration = Integer.parseInt(sc.nextLine().trim());
+
+            if (title.isBlank() || duration <= 0) {
+                System.out.println("Enter a title and positive duration.");
+                tx.rollback();
+                return;
+            }
+
+            course.setTitle(title);
+            course.setDuration(duration);
+
+            tx.commit();
+            System.out.println("Course updated successfully!");
+        } catch (Exception e) {
+            if (tx != null && tx.isActive()) tx.rollback();
+            System.out.println("Update failed: " + e.getMessage());
+        }
+    }
+
+    private static void removeRegistration() {
+        System.out.print("Enter registration ID to remove: ");
+        long id = Long.parseLong(sc.nextLine().trim());
+
+        Transaction tx = null;
+
+        try (Session session = factory.openSession()) {
+            tx = session.beginTransaction();
+
+            Registration registration =
+                    session.get(Registration.class, id);
+
+            if (registration == null) {
+                System.out.println("Registration not found.");
+                tx.rollback();
+                return;
+            }
+
+            session.remove(registration);
+
+            tx.commit();
+            System.out.println("Registration removed successfully!");
+        } catch (Exception e) {
+            if (tx != null && tx.isActive()) tx.rollback();
+            System.out.println("Removal failed: " + e.getMessage());
+        }
+    }
+
+    private static void viewStudents() {
+        try (Session session = factory.openSession()) {
+            List<Student> students = session.createQuery(
+                    "from Student order by id", Student.class).list();
+
+            System.out.println("\n--- Students ---");
+
+            for (Student s : students) {
+                System.out.println(
+                        "ID: " + s.getId()
+                        + " | Name: " + s.getName()
+                        + " | Email: " + s.getEmail());
+            }
+
+            if (students.isEmpty()) System.out.println("No students found.");
+        }
+    }
+
+    private static void viewCourses() {
+        try (Session session = factory.openSession()) {
+            List<Course> courses = session.createQuery(
+                    "from Course order by id", Course.class).list();
+
+            System.out.println("\n--- Courses ---");
+
+            for (Course c : courses) {
+                System.out.println(
+                        "ID: " + c.getId()
+                        + " | Title: " + c.getTitle()
+                        + " | Duration: " + c.getDuration() + " weeks");
+            }
+
+            if (courses.isEmpty()) System.out.println("No courses found.");
+        }
     }
 }
